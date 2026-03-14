@@ -1,0 +1,30 @@
+import FreeCAD as App
+import Part
+import Draft
+
+
+doc = App.activeDocument()
+WL_heights = [100,200,300]
+cFrames_distances = [0, 100, 200]
+cFrames = [
+#   cf1  cf2  cf3
+    [50, 100, 75], #Breadth at WL3
+    [25, 75,  50], #Breadth at WL2
+    [15, 25,  20]  #Breadth at WL1
+]
+sponung = [
+    25,0,15 #Height above Base
+]
+
+cFrameSplines = []
+for frame in range(len(cFrames[0])):
+    points = [App.Vector(cFrames_distances[frame],0,sponung[frame])]
+
+    for WL in range(len(cFrames)):
+        points.append(App.Vector(cFrames_distances[frame], cFrames[WL][frame],WL_heights[WL]))
+    for WL in range(len(cFrames)):
+        points.insert(0,App.Vector(cFrames_distances[frame], -cFrames[WL][frame],WL_heights[WL]))
+        
+    cFrameSplines.append(Draft.make_bspline(points, closed=False))
+
+doc.recompute()
