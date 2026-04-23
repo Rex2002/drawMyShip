@@ -1,30 +1,70 @@
 import FreeCAD as App
 import Part
+import Sketcher
 import Draft
 
 
 doc = App.activeDocument()
-WL_heights = [100,200,300]
-cFrames_distances = [0, 100, 200]
+body = doc.ActiveObject
+WL_heights = [1,2,3]
+cFrames_distances = [0, 1, 2]
 cFrames = [
 #   cf1  cf2  cf3
-    [50, 100, 75], #Breadth at WL3
-    [25, 75,  50], #Breadth at WL2
-    [15, 25,  20]  #Breadth at WL1
+    [5.0, 10.0, 7.5], #Breadth at WL3
+    [2.5, 7.5,  5.0], #Breadth at WL2
+    [1.5, 2.5,  2.0]  #Breadth at WL1
 ]
 sponung = [
-    25,0,15 #Height above Base
+    2.5,0,1.5 #Height above Base
 ]
 
-cFrameSplines = []
+
+def createCurve(pointsList):
+    curve = Part.BSplineCurve()
+    curve.interpolate([App.Vector(x,y,z) for x,y,z in pointsList])
+    curve.increaseDegree(3)
+    return Part.BSplineCurve(curve.getPoles(), curve.getMultiplicities(), curve.getKnots(), False, 3, None, False)
+
+
+cFrameSplineSketches = []
+cFramePlanes = []
 for frame in range(len(cFrames[0])):
-    points = [App.Vector(cFrames_distances[frame],0,sponung[frame])]
+
+    refPlane = doc.addObject("PartDesign::Plane", "cFramePlane " + str(frame))
+    refPlane.AttachmentSupport = [doc.getObject("XZ_Plane")]
+    refPlane.MapMode = "FlatFace"
+    refPlane.AttachmentOffset = App.Placement(App.Vector(0,0,cFrames_distances[frame]), App.Rotation(0,0,0))
+    #doc.addObject(refPlane)
+    cFramePlanes.append(refPlane)
+    sketch = doc.addObject("Sketcher::SketchObject", "Frame " + str(frame))
+    
+
+    sketch.AttachmentSupport = [(doc.getObject("cFramePlane " + str(frame)), '')]
+    sketch.MapMode = "FlatFace"
+
+    points = [App.Vector(0,0,sponung[frame])]
 
     for WL in range(len(cFrames)):
-        points.append(App.Vector(cFrames_distances[frame], cFrames[WL][frame],WL_heights[WL]))
+        points.append(App.Vector(cFrames[WL][frame], WL_heights[WL], 0))
     for WL in range(len(cFrames)):
-        points.insert(0,App.Vector(cFrames_distances[frame], -cFrames[WL][frame],WL_heights[WL]))
-        
-    cFrameSplines.append(Draft.make_bspline(points, closed=False))
+        points.insert(0,App.Vector(cFrames[WL][frame],WL_heights[WL], 0))
+    
+    cFrameSplineSketches.append([sketch, createCurve(points)])
 
+for sketch, cFrameSpline in cFrameSplineSketches:
+    sketch.addGeometry(cFrameSpline, False)
+'''points = []
+points.append(App.Vector(3,1,0))
+points.append(App.Vector(2,2,0))
+points.append(App.Vector(1,3,0))
+curve = Part.BSplineCurve()
+curve.interpolate(points)
+sketch.addGeometry(curve)
+sketch.addGeometry(Part.LineSegment(App.Vector(1.2, 1.8, 0),
+                                    App.Vector(5.2, 5.3, 0)), False)
+sketch.addGeometry(Part.LineSegment(App.Vector(6.5, 1.5, 0),
+                                    App.Vector(10.2, 5.0, 0)), False)
+sketch.addGeometry(Part.LineSegment(App.Vector(12.2, 1.0, 0),
+                                    App.Vector(15.4, 5.0, 0)), False)
+'''
 doc.recompute()

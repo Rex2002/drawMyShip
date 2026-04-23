@@ -1,0 +1,22 @@
+import FreeCAD as App
+import Part
+import Sketcher
+
+doc = App.activeDocument()
+
+refPlane = doc.addObject("PartDesign::Plane", "testPlane")
+refPlane.AttachmentSupport = [doc.getObject("XZ_Plane")]
+refPlane.MapMode = "FlatFace"
+refPlane.AttachmentOffset = App.Placement(App.Vector(0,0,100), App.Rotation(0,0,0))
+
+sketch = doc.addObject("Sketcher::SketchObject", "testSketch")
+
+
+sketch.AttachmentSupport = [(doc.getObject("testPlane"), '')]
+sketch.MapMode = "FlatFace"
+
+sketch.addGeometry(Part.LineSegment(App.Vector(0,0,0 ), App.Vector(0,1,0)))
+sketch.addGeometry(Part.LineSegment(App.Vector(1,1,0 ), App.Vector(1,0,0)))
+
+
+doc.recompute()
