@@ -6,16 +6,19 @@ import Draft
 
 doc = App.activeDocument()
 body = doc.ActiveObject
-WL_heights = [1,2,3]
-cFrames_distances = [0, 10, 20]
+WL_heights = [100,200,300,400, 500, 600]
+cFrames_distances = [0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000]
 cFrames = [
-#   cf1  cf2  cf3
-    [5.0, 10.0, 7.5], #Breadth at WL3
-    [2.5, 7.5,  5.0], #Breadth at WL2
-    [1.5, 2.5,  2.0]  #Breadth at WL1
+#    cf1  cf2   cf3  cf4  cf5  cf6  cf7  cf8  cf9
+    [150, 250,  200, 200, 200, 200, 200, 200, 200], #Breadth at WL1
+    [250, 750,  500, 500, 500, 500, 500, 500, 500], #Breadth at WL2
+    [500, 1000, 750, 750, 750, 750, 750, 750, 750], #Breadth at WL3
+    [500, 1000, 750, 750, 750, 750, 750, 750, 750], #Breadth at WL4
+    [500, 1000, 750, 750, 750, 750, 750, 750, 750], #Breadth at WL5
+    [500, 1000, 750, 750, 750, 750, 750, 750, 750], #Breadth at WL6
 ]
 sponung = [
-    2.5,0,1.5 #Height above Base
+    25, 20, 15, 10, 5, 0, 2,4,6, #Height above Base
 ]
 
 
@@ -23,17 +26,19 @@ def createCurve(pointsList):
     curve = Part.BSplineCurve()
     curve.interpolate([point for point in pointsList])
     curve.increaseDegree(3)
+        
     return Part.BSplineCurve(curve.getPoles(), curve.getMultiplicities(), curve.getKnots(), False, 3, None, False)
 
 
 cFrameSplineSketches = []
 cFramePlanes = []
 for frame in range(len(cFrames[0])):
-
+    print("frame: " + str(frame))
     refPlane = doc.addObject("PartDesign::Plane", "cFramePlane" + str(frame))
     refPlane.AttachmentSupport = [doc.getObject("XZ_Plane")]
     refPlane.MapMode = "FlatFace"
     refPlane.AttachmentOffset = App.Placement(App.Vector(0,0,cFrames_distances[frame]), App.Rotation(0,0,0))
+    refPlane.Visibility = False
     cFramePlanes.append(refPlane)
     sketch = doc.addObject("Sketcher::SketchObject", "Frame" + str(frame))
     
@@ -45,11 +50,12 @@ for frame in range(len(cFrames[0])):
 
     for WL in range(len(cFrames)):
         points.append(App.Vector(-cFrames[WL][frame], WL_heights[WL], 0))
+
     for WL in range(len(cFrames)):
         points.insert(0,App.Vector(cFrames[WL][frame],WL_heights[WL], 0))
-    
+    for point in points:
+        sketch.addGeometry(Part.Point(point), False)
     cFrameSplineSketches.append([sketch, createCurve(points)])
-
 for sketch, cFrameSpline in cFrameSplineSketches:
     sketch.addGeometry(cFrameSpline, False)
 '''points = []
