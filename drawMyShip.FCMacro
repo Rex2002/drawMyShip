@@ -1,7 +1,10 @@
+
 import FreeCAD as App
+
 import Part
 import Sketcher
 import Draft
+
 
 
 doc = App.activeDocument()
@@ -35,10 +38,10 @@ cFramePlanes = []
 for frame in range(len(cFrames[0])):
     print("frame: " + str(frame))
     refPlane = doc.addObject("PartDesign::Plane", "cFramePlane" + str(frame))
-    refPlane.AttachmentSupport = [doc.getObject("XZ_Plane")]
+    refPlane.AttachmentSupport = [(doc.getObject("YZ_Plane"), [""])]
     refPlane.MapMode = "FlatFace"
-    refPlane.AttachmentOffset = App.Placement(App.Vector(0,0,cFrames_distances[frame]), App.Rotation(0,0,0))
-    refPlane.Visibility = False
+    refPlane.Placement = App.Placement(App.Vector(0,cFrames_distances[frame],0), App.Rotation(0,0,90))
+    refPlane.Visibility = True
     cFramePlanes.append(refPlane)
     sketch = doc.addObject("Sketcher::SketchObject", "Frame" + str(frame))
     
